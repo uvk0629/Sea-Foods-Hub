@@ -1,16 +1,17 @@
-Here is the completely revised `index.html` codebase. It addresses all 7 items on your modification checklist, transforming the layout into a customizable multi-company platform that functions like a standalone app while adjusting the internal logic and invoice formatting.
+Since searching through hundreds of lines of code manually can be tricky, here is the easiest way to find and fix it:
 
-### Summary of Changes Implemented:
+### The Quick Way (Using Keyboard Shortcuts)
 
-1. **App Naming & Branding:** Updated all references across headers, logs, titles, and layouts to fully display **"Sea Food Hub"** instead of the abbreviation.
-2. **Standalone Fullscreen Setup:** Integrated mobile capability tags and viewport specifications. Ensured standard browser controls are completely hidden when run as an added homescreen web app.
-3. **Multi-Company Management:** Redesigned the structure to support saving and toggling between multiple companies. Profiles can be modified directly, with the selected profile configured as the dynamic processing active default.
-4. **Onboarding & Configuration Form Enhancements:** Added an input field for a structural **Short Code**, interactive base64 **Logo Uploading**, and dedicated setup tables for tracking **Vehicles (Numbers)** and **Drivers (Names & Mobile numbers)**.
-5. **Modified Sales Interface:** Moved delivery attributes above the dynamic inventory tables. Discarded the seal input parameter. Provided an updated vehicle picker overlay and automated autofill suggest options for saved driver contact configurations. Added a clear text field for Bank Account Name.
-6. **Polished Ink-Saving Invoice Document:** Overhauled styling variables inside the preview template block to remove standard color styling, utilizing clean high-contrast black & white layout styling fitted for standard portrait A4 printing. The user company's dynamic logo appears up top, numeric fields default text padding via standard fixed double decimal places (`.00`), total sums translate automated currency numbers into capital words, and invoice serial IDs explicitly prefix the company short code.
-7. **Watermarking & Branding Controls:** Maintained the developer branding logo only on the primary access dashboard panel, injecting translucent backdrop watermarks across core tracking tabs, while keeping the invoice printing workspace explicitly clear of any external developer branding.
+1. Open your `index.html` file in your code editor or directly on the GitHub website editor.
+2. Press **`Ctrl + F`** (on Windows) or **`Cmd + F`** (on Mac) to open the search bar.
+3. Type or paste **`row-Amt`** into the search bar and press Enter.
+4. It will jump directly to the exact line. Just change **`row-Amt`** to **`rowAmt`** (remove the minus sign).
 
-Save the following content into your `index.html` file:
+---
+
+### The Complete Code (If you want to just copy and paste everything again)
+
+If you prefer not to search for it, you can simply select all the text in your `index.html` file, delete it, and paste this fully corrected version. The typo has been completely removed below:
 
 ```html
 <!DOCTYPE html>
@@ -45,11 +46,8 @@ Save the following content into your `index.html` file:
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; overflow: hidden; }
 body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--ink); height: 100%; }
-
-/* Standalone adjustments */
 body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
 
-/* Watermark styles (omitted from print) */
 .watermarked-screen::before {
   content: "Sea Food Hub";
   position: fixed;
@@ -65,11 +63,9 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
   white-space: nowrap;
 }
 
-/* Screens */
 .screen { position: fixed; inset: 0; overflow-y: auto; display: none; flex-direction: column; background: var(--bg); z-index: 2; }
 .screen.active { display: flex; }
 
-/* Top bar */
 .topbar {
   background: var(--navy);
   color: #fff;
@@ -86,7 +82,6 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
 .topbar h2 { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; flex: 1; }
 .topbar .sub { font-size: .68rem; opacity: .7; display: block; font-weight: 400; }
 
-/* Onboarding */
 #onboarding-screen {
   background: linear-gradient(160deg, #1a3a6b 0%, #2454a0 55%, #e8eef8 100%);
   justify-content: flex-start; align-items: center;
@@ -97,7 +92,6 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
 .onboard-form { background: var(--card); border-radius: 20px 20px 0 0; flex: 1; width: 100%; padding: 24px 18px 40px; overflow-y: auto; z-index: 5; }
 .onboard-step-title { font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--navy); margin-bottom: 16px; border-bottom: 1.5px solid var(--navy-light); padding-bottom: 8px; }
 
-/* Home Dashboard */
 #home { background: linear-gradient(160deg, #1a3a6b 0%, #2454a0 55%, #e8eef8 100%); justify-content: flex-start; align-items: center; }
 .home-header { padding: 40px 24px 28px; text-align: center; width: 100%; }
 .home-logo { margin: 0 auto 14px; display: flex; justify-content: center; align-items: center; }
@@ -124,7 +118,6 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
 .home-card .arrow { margin-left: auto; color: var(--muted); font-size: 1.1rem; }
 .home-date { color: rgba(255,255,255,.6); font-size: .75rem; text-align: center; padding: 0 0 14px; }
 
-/* Form Content */
 .form-content { flex: 1; padding: 16px 14px 100px; z-index: 5; position: relative; }
 .section-card { background: var(--card); border-radius: 14px; border: 1.5px solid var(--border); padding: 14px 14px 16px; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
 .sec-title { font-family: 'Playfair Display', serif; font-size: .9rem; color: var(--navy); margin-bottom: 12px; padding-bottom: 7px; border-bottom: 1.5px solid var(--navy-light); display: flex; align-items: center; gap: 6px; }
@@ -140,7 +133,6 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .field-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 
-/* Suggestion Box */
 .suggestion-box {
   position: absolute; top: 100%; left: 0; right: 0; background: #fff;
   border: 1px solid var(--border); border-radius: 6px; max-height: 150px;
@@ -149,7 +141,6 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
 .suggestion-item { padding: 8px 12px; font-size: .85rem; cursor: pointer; border-bottom: 1px solid #f0ece3; }
 .suggestion-item:hover { background: var(--navy-light); }
 
-/* Table structures */
 .lot-header-p, .lot-header-s {
   display: grid;
   grid-template-columns: 22px 60px 80px 70px 80px 28px;
@@ -187,14 +178,12 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
 .lot-total-row .tot-amt { font-family: 'DM Mono', monospace; text-align: right; }
 .add-row-btn { width: 100%; background: none; border: 1.5px dashed var(--navy); color: var(--navy); font-size: .85rem; font-weight: 700; padding: 9px; border-radius: 9px; cursor: pointer; font-family: 'Nunito', sans-serif; }
 
-/* Totals styling */
 .totals-card { background: var(--gold-light); border: 1.5px solid var(--gold); border-radius: 12px; padding: 14px; margin-bottom: 14px; }
 .tot-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; font-size: .85rem; }
 .tot-row.deduct { color: var(--red); }
 .tot-row.grand { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--navy); font-weight: 700; border-top: 1.5px solid var(--gold); margin-top: 6px; padding-top: 8px; }
 .tot-val { font-family: 'DM Mono', monospace; font-weight: 600; }
 
-/* Bottom buttons */
 .bottom-actions {
   position: fixed; bottom: 0; left: 0; right: 0;
   background: rgba(255,254,249,.95); border-top: 1.5px solid var(--border);
@@ -207,14 +196,12 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
 .btn-gold { background: var(--gold); color: #fff; box-shadow: 0 4px 14px rgba(196,124,26,.3); }
 .btn-outline { background: transparent; color: var(--navy); border: 2px solid var(--navy); }
 
-/* Profile Item List */
 .profile-item-card {
   background: var(--card); border: 1.5px solid var(--border); border-radius: 10px;
   padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
 }
 .profile-item-card.selected { border-color: var(--navy); background: var(--navy-light); }
 
-/* A4 Portrait B&W Printable Invoice Sheet Override Styles */
 #invoice-preview-screen .form-content { padding-bottom: 80px; }
 #invoice-sheet {
   background: #fff; padding: 20px; border: 1px solid #000;
@@ -251,10 +238,8 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
 .inv-sign-box { border: 1px dashed #000; height: 60px; display: flex; align-items: center; justify-content: center; font-size: .7rem; }
 .inv-footer-caution { text-align: center; font-size: .65rem; border-top: 1px dashed #000; padding-top: 6px; font-style: italic; }
 
-/* Dynamic repeated config tables */
 .config-table-row { display: grid; grid-template-columns: 1fr auto; gap: 6px; margin-bottom: 6px; }
 
-/* Factory lists */
 .factory-list { padding: 14px 14px 90px; }
 .factory-card { background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
 .factory-card h3 { font-size: .95rem; font-weight: 700; color: var(--navy); margin-bottom: 2px; }
@@ -268,7 +253,6 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
 .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
 .empty-state p { font-size: .85rem; line-height: 1.6; }
 
-/* Modals */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 500; display: none; align-items: flex-end; justify-content: center; }
 .modal-overlay.open { display: flex; }
 .modal-box { background: var(--card); border-radius: 20px 20px 0 0; padding: 20px 18px calc(24px + env(safe-area-inset-bottom)); width: 100%; max-height: 85vh; overflow-y: auto; animation: slideUp .25s ease; }
@@ -276,7 +260,6 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
 .modal-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; color: var(--navy); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1.5px solid var(--navy-light); }
 .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
 
-/* History */
 .history-item { background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
 .history-item:active { background: var(--navy-light); }
 .history-badge { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
@@ -341,7 +324,6 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
     </div>
   </div>
 </div>
-
 
 <div class="screen" id="onboarding-screen">
   <div class="onboard-header">
@@ -425,7 +407,6 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
   </div>
 </div>
 
-
 <div class="screen watermarked-screen" id="home">
   <div class="home-header">
     <h1 class="home-title" id="home-display-co">Sea Food Hub</h1>
@@ -481,7 +462,6 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
   </div>
   <div class="home-date" id="home-live-date">SYSTEM OPERATIONAL CONNECTIVITY</div>
 </div>
-
 
 <div class="screen watermarked-screen" id="purchase-screen">
   <div class="topbar">
@@ -570,7 +550,6 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
     <button class="btn btn-navy" onclick="savePurchase()">Commit Manifest</button>
   </div>
 </div>
-
 
 <div class="screen watermarked-screen" id="sale-screen">
   <div class="topbar">
@@ -666,7 +645,6 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
   </div>
 </div>
 
-
 <div class="screen" id="invoice-preview-screen">
   <div class="topbar">
     <button class="topbar-back" onclick="closeInvoicePreview()">‹</button>
@@ -676,8 +654,7 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
   <div class="form-content">
     <div id="invoice-sheet">
       <div class="inv-header">
-        <div class="inv-logo-wrap" id="print-logo-container">
-          </div>
+        <div class="inv-logo-wrap" id="print-logo-container"></div>
         <div class="inv-company-info">
           <div class="inv-co" id="pr-user-co-name">COMPANY NAME</div>
           <div class="inv-city" id="pr-user-co-city">CITY REGISTRY</div>
@@ -719,8 +696,7 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
             <th class="r" style="width:130px">Valuation Matrix Total</th>
           </tr>
         </thead>
-        <tbody id="pr-invoice-table-body">
-          </tbody>
+        <tbody id="pr-invoice-table-body"></tbody>
         <tfoot>
           <tr>
             <td colspan="2" style="text-align:right; font-weight:800;">Cargo Weight & Net Base Valuations:</td>
@@ -778,7 +754,6 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
   </div>
 </div>
 
-
 <div class="screen watermarked-screen" id="factories-screen">
   <div class="topbar">
     <button class="topbar-back" onclick="navigateHome()">‹</button>
@@ -793,7 +768,6 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
   </div>
 </div>
 
-
 <div class="screen watermarked-screen" id="history-screen">
   <div class="topbar">
     <button class="topbar-back" onclick="navigateHome()">‹</button>
@@ -807,7 +781,6 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
 
   <div class="form-content" id="history-items-container"></div>
 </div>
-
 
 <div class="screen watermarked-screen" id="settings-screen">
   <div class="topbar">
@@ -830,7 +803,6 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
     </div>
   </div>
 </div>
-
 
 <div class="modal-overlay" id="factory-modal">
   <div class="modal-box">
@@ -855,22 +827,17 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
   </div>
 </div>
 
-
 <div class="toast" id="toast-notify">System Operation Sync Successful</div>
 
-
 <script>
-// Global Database Variables
 let CURRENT_COMPANY_INDEX = 0;
 let HISTORY_ACTIVE_TAB = 'P';
 
-// Default State Fallbacks
 const DEFAULT_FACTORY_DIRECTORY = [
   {code:"FAC-ROYAL", name:"Royal Aqua Marine Processing Unit", loc:"Industrial Bay Sector 2, Visakhapatnam"},
   {code:"FAC-OCEAN", name:"Oceanic Deep Frost Freeze Complexes", loc:"Harbour Terminal Wharf, Kakinada"}
 ];
 
-// Base Data-Structures Helper Functions
 function getCompaniesList() {
   const data = localStorage.getItem('sfh_companies_list');
   return data ? JSON.parse(data) : [];
@@ -895,7 +862,6 @@ function updateActiveCompanyData(updatedCompanyObj) {
   }
 }
 
-// Global Application Helper Utilities
 function toast(msg) {
   const t = document.getElementById('toast-notify');
   t.innerText = msg;
@@ -907,7 +873,6 @@ function isLoggedIn() {
   return localStorage.getItem('sfh_logged_in_phone') !== null;
 }
 
-// Base64 File Loading Converter Tool
 function previewImage(fileInput, previewId) {
   const file = fileInput.files[0];
   if(file) {
@@ -921,7 +886,6 @@ function previewImage(fileInput, previewId) {
   }
 }
 
-// Onboarding Multi-Config Repeated Rows Setup engines
 function addConfigRow(containerId, placeholderText, value = "") {
   const container = document.getElementById(containerId);
   const row = document.createElement('div');
@@ -946,7 +910,6 @@ function addDriverConfigRow(containerId, name = "", phone = "") {
   container.appendChild(row);
 }
 
-// Suggestion Autocomplete Engines
 let ACTIVE_VEHICLES = [];
 let ACTIVE_DRIVERS = [];
 
@@ -979,6 +942,7 @@ function filterVehicleSuggestions() {
   showVehicleSuggestions();
 }
 
+// Fixed function implementation context
 function showDriverSuggestions() {
   const box = document.getElementById('driver-suggestions');
   const val = document.getElementById('s-driver-name').value.toLowerCase();
@@ -1003,20 +967,17 @@ function filterDriverSuggestions() {
   showDriverSuggestions();
 }
 
-// Close suggestion frames clicking outside
 document.addEventListener('click', function(e) {
   if(e.target.id !== 's-veh-no') document.getElementById('veh-suggestions').style.display = 'none';
   if(e.target.id !== 's-driver-name') document.getElementById('driver-suggestions').style.display = 'none';
 });
 
-// Numeric values string formatting assistant 
 function formatDecimalStr(val) {
   const num = parseFloat(val);
   if(isNaN(num)) return "0.00";
   return num.toFixed(2);
 }
 
-// Convert numbers into standard descriptive text words
 function convertAmountToWords(amount) {
   const sgl = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
   const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
@@ -1044,7 +1005,6 @@ function convertAmountToWords(amount) {
   let out = "";
   let chunkIdx = 0;
 
-  // Process lowest level rupees
   let hundredRem = num % 1000;
   if(hundredRem > 0) {
     out = parseChunk(hundredRem) + " " + out;
@@ -1064,8 +1024,6 @@ function convertAmountToWords(amount) {
   return out.trim() + " Rupees Only";
 }
 
-
-// Auth Verification Matrix Processes
 function requestOTP() {
   const p = document.getElementById('login-phone').value;
   if(p.length !== 10) { alert("Matrix identity key validation error. Must span 10 integers."); return; }
@@ -1092,7 +1050,6 @@ function triggerNewCompanyOnboarding() {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('onboarding-screen').classList.add('active');
   
-  // Wipe onboarding forms clean
   document.getElementById('ob-co-name').value = '';
   document.getElementById('ob-co-short').value = '';
   document.getElementById('ob-co-city').value = '';
@@ -1122,7 +1079,6 @@ function commitOnboarding() {
     return;
   }
 
-  // Parse repeatable sub tables maps
   const vehicles = [];
   document.querySelectorAll('#ob-vehicles-container .config-input-node').forEach(input => {
     if(input.value.trim()) vehicles.push(input.value.trim().toUpperCase());
@@ -1177,7 +1133,6 @@ function updateHomeDisplay() {
   document.getElementById('home-display-short').innerText = "Active Node Code: " + activeCo.shortCode;
   document.getElementById('home-live-date').innerText = new Date().toDateString().toUpperCase() + " | SECURE ONLINE CONTEXT";
 
-  // Build autocompletes maps
   ACTIVE_VEHICLES = activeCo.vehicles || [];
   ACTIVE_DRIVERS = activeCo.drivers || [];
 }
@@ -1208,15 +1163,12 @@ function navigateHome() {
   updateHomeDisplay();
 }
 
-
-// --- PROCUREMENT CORE ENGINE ---
 function openPurchase() {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('purchase-screen').classList.add('active');
   document.getElementById('p-date').valueAsDate = new Date();
   document.getElementById('p-lot-no').value = "LOT-" + Math.floor(1000 + Math.random() * 9000);
   
-  // Wipe parameters input elements
   document.getElementById('p-supplier-name').value = '';
   document.getElementById('p-supplier-loc').value = '';
   document.getElementById('p-shrimp-type').value = 'Vannamei';
@@ -1226,7 +1178,6 @@ function openPurchase() {
   document.getElementById('p-scrap-kg').value = 0;
   document.getElementById('p-scrap-rate').value = 0;
   
-  // Feed active factories selection configurations
   const fSelect = document.getElementById('p-factory-select');
   fSelect.innerHTML = '<option value="">Select Processing Target</option>';
   const co = getActiveCompany();
@@ -1288,7 +1239,6 @@ function calculatePurchaseTotals() {
   const scrapRate = parseFloat(document.getElementById('p-scrap-rate').value) || 0;
   const scrapCredit = scrapKg * scrapRate;
 
-  // Calculate global aggregate rates mapping averages
   const avgRate = totalWeight > 0 ? (totalBasicAmount / totalWeight) : 0;
   const grossValue = totalBasicAmount;
   const deductionValue = totalDeductedWeight * avgRate;
@@ -1343,14 +1293,11 @@ function savePurchase() {
   navigateHome();
 }
 
-
-// --- SALES DISTRIBUTION ENGINE ---
 function openSale() {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('sale-screen').classList.add('active');
   document.getElementById('s-date').valueAsDate = new Date();
   
-  // Prefix Invoice numbers with the dynamic selected Company Short Code
   const co = getActiveCompany();
   const scode = co ? co.shortCode : "INV";
   document.getElementById('s-invoice-no').value = scode + "-" + Math.floor(10000 + Math.random() * 90000);
@@ -1447,19 +1394,16 @@ function processSaleInvoicePreview() {
     netTotal: parseFloat(document.getElementById('s-val-net').innerText)
   };
 
-  // Render Printable Document Preview
   document.getElementById('pr-user-co-name').innerText = co.name;
   document.getElementById('pr-user-co-city').innerText = co.city;
   document.getElementById('pr-user-co-addr').innerText = co.address || "Main Processing Grid Sector 1";
   document.getElementById('pr-user-co-tax').innerText = `PAN: ${co.pan || 'NOT SUPPLIED'} | GSTIN: ${co.gstin || 'NOT DEPLOYED'}`;
   
-  // Bank elements account name update mapping
   document.getElementById('pr-bank-title-name').innerText = co.bankName || co.name;
   document.getElementById('pr-bank-name').innerText = co.bankInstitution || "Central Clearing Node";
   document.getElementById('pr-bank-acc').innerText = co.bankAccount || "NA";
   document.getElementById('pr-bank-ifsc').innerText = co.bankIfsc || "NA";
 
-  // Dynamic image insertion (Pure Black & White Filter Overridden)
   const logoWrap = document.getElementById('print-logo-container');
   if(co.logoImg) {
     logoWrap.innerHTML = `<img src="${co.logoImg}" alt="Logo">`;
@@ -1479,7 +1423,6 @@ function processSaleInvoicePreview() {
     sigWrap.innerText = "Authorized Signature Block";
   }
 
-  // Populate dynamic textual attributes
   document.getElementById('pr-inv-no').innerText = COMPILING_SALE_RECORD.invoiceNo;
   document.getElementById('pr-inv-date').innerText = COMPILING_SALE_RECORD.date;
   document.getElementById('pr-buyer-name').innerText = COMPILING_SALE_RECORD.buyerName;
@@ -1491,12 +1434,12 @@ function processSaleInvoicePreview() {
   document.getElementById('pr-temp').innerText = COMPILING_SALE_RECORD.temp;
   document.getElementById('pr-dispatch-place').innerText = COMPILING_SALE_RECORD.dispatchPlace;
 
-  // Process item rows injections with required decimal zeroes formatting
   const tableBody = document.getElementById('pr-invoice-table-body');
   tableBody.innerHTML = '';
   let grossCargoVal = 0;
   let grossWeightVal = 0;
 
+  // ════════ TYPO CONTEXT CORRECTION DETECTED AND STABILIZED HERE ════════
   COMPILING_SALE_RECORD.rows.forEach((row, i) => {
     const rowAmt = row.weight * row.rate;
     grossCargoVal += rowAmt;
@@ -1508,7 +1451,7 @@ function processSaleInvoicePreview() {
         <td>${row.count}</td>
         <td class="r">${formatDecimalStr(row.weight)}</td>
         <td class="r">${formatDecimalStr(row.rate)}</td>
-        <td class="r">${formatDecimalStr(row-Amt)}</td>
+        <td class="r">${formatDecimalStr(rowAmt)}</td>
       </tr>
     `;
   });
@@ -1521,10 +1464,8 @@ function processSaleInvoicePreview() {
   const netInvoicedVal = grossCargoVal + COMPILING_SALE_RECORD.insurance;
   document.getElementById('pr-val-net').innerText = formatDecimalStr(netInvoicedVal);
 
-  // Set the dynamic total in words under the rows table matrix
   document.getElementById('pr-amount-words').innerText = convertAmountToWords(netInvoicedVal);
 
-  // Transition screen modes
   document.getElementById('sale-screen').classList.remove('active');
   document.getElementById('invoice-preview-screen').classList.add('active');
 }
@@ -1538,12 +1479,10 @@ function printInvoiceSnapshot() {
   const co = getActiveCompany();
   if(!co || !COMPILING_SALE_RECORD) return;
 
-  // Commit history records logs
   if(!co.history) co.history = [];
   co.history.push(COMPILING_SALE_RECORD);
   updateActiveCompanyData(co);
 
-  // Execute web standard canvas rendering logic maps
   const targetElement = document.getElementById('invoice-sheet');
   html2canvas(targetElement, { scale: 2, useCORS: true }).then(canvas => {
     const link = document.createElement('a');
@@ -1557,8 +1496,6 @@ function printInvoiceSnapshot() {
   });
 }
 
-
-// --- PROCESSING PLANT FACILITIES MANAGERS ---
 function openFactories() {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('factories-screen').classList.add('active');
@@ -1658,8 +1595,6 @@ function triggerDeleteFactory(idx) {
   renderFactoriesList();
 }
 
-
-// --- ARCHIVE HISTORY LOG MATRIX ENGINE ---
 function openHistory() {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('history-screen').classList.add('active');
@@ -1732,8 +1667,6 @@ function purgeHistoryNode(id, event) {
   renderHistoryLedgerItems();
 }
 
-
-// --- MULTI-COMPANY ADMINISTRATION PIPELINES PANEL ---
 function openSettings() {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('settings-screen').classList.add('active');
@@ -1790,8 +1723,6 @@ function purgeCompanyPipeline(idx, event) {
   updateHomeDisplay();
 }
 
-
-// --- SYSTEM ENGINE INITIALIZER ENTRY POINT ---
 (function initSystemTerminal() {
   if(!isLoggedIn()) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
