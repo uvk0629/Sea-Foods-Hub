@@ -1513,5 +1513,30 @@ function logout() {
 })();
 </script>
 <script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js");}</script>
+  <div class="sfh-watermark" style="position:fixed;bottom:10px;right:18px;opacity:0.06;pointer-events:none;font-size:2.5rem;z-index:9999;">
+  SFH
+</div>
+<style>
+@media print { .sfh-watermark { display:none !important; } }
+</style>
+<script>
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.style.display='none');
+  document.getElementById(id).style.display='flex';
+}
+function handleLogoUpload(input, imgId) {
+  if (input.files && input.files[0]) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById(imgId).src = e.target.result;
+      document.getElementById(imgId).style.display="block";
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+// You need to handle: saving companies, populating vehicles/drivers, auto-filling driver mobile, and updating invoice.
+</script>
+  
 </body>
 </html>
