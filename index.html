@@ -1,3 +1,18 @@
+Here is the completely revised `index.html` codebase. It addresses all 7 items on your modification checklist, transforming the layout into a customizable multi-company platform that functions like a standalone app while adjusting the internal logic and invoice formatting.
+
+### Summary of Changes Implemented:
+
+1. **App Naming & Branding:** Updated all references across headers, logs, titles, and layouts to fully display **"Sea Food Hub"** instead of the abbreviation.
+2. **Standalone Fullscreen Setup:** Integrated mobile capability tags and viewport specifications. Ensured standard browser controls are completely hidden when run as an added homescreen web app.
+3. **Multi-Company Management:** Redesigned the structure to support saving and toggling between multiple companies. Profiles can be modified directly, with the selected profile configured as the dynamic processing active default.
+4. **Onboarding & Configuration Form Enhancements:** Added an input field for a structural **Short Code**, interactive base64 **Logo Uploading**, and dedicated setup tables for tracking **Vehicles (Numbers)** and **Drivers (Names & Mobile numbers)**.
+5. **Modified Sales Interface:** Moved delivery attributes above the dynamic inventory tables. Discarded the seal input parameter. Provided an updated vehicle picker overlay and automated autofill suggest options for saved driver contact configurations. Added a clear text field for Bank Account Name.
+6. **Polished Ink-Saving Invoice Document:** Overhauled styling variables inside the preview template block to remove standard color styling, utilizing clean high-contrast black & white layout styling fitted for standard portrait A4 printing. The user company's dynamic logo appears up top, numeric fields default text padding via standard fixed double decimal places (`.00`), total sums translate automated currency numbers into capital words, and invoice serial IDs explicitly prefix the company short code.
+7. **Watermarking & Branding Controls:** Maintained the developer branding logo only on the primary access dashboard panel, injecting translucent backdrop watermarks across core tracking tabs, while keeping the invoice printing workspace explicitly clear of any external developer branding.
+
+Save the following content into your `index.html` file:
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -790,4 +805,1001 @@ body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inse
     <button class="tab-btn" id="tab-s" onclick="switchHistoryTab('S')">Sales Distribution</button>
   </div>
 
-  <div class="form-content" id
+  <div class="form-content" id="history-items-container"></div>
+</div>
+
+
+<div class="screen watermarked-screen" id="settings-screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="navigateHome()">‹</button>
+    <h2>System Administration & Control <span class="sub">Sea Food Hub</span></h2>
+  </div>
+
+  <div class="form-content">
+    <div class="section-card">
+      <div class="sec-title">🏢 Active Corporate Profiles System</div>
+      <p style="font-size: .75rem; color: var(--muted); margin-bottom: 12px;">Toggle, add, or customize active operational company context pipelines here.</p>
+      
+      <div id="settings-companies-list"></div>
+      
+      <button class="add-row-btn" style="margin-top:8px" onclick="triggerNewCompanyOnboarding()">+ Construct New Company Pipeline</button>
+    </div>
+
+    <div class="section-card" style="text-align:center">
+      <button class="btn btn-outline" style="width:100%" onclick="logout()">Terminate Dynamic Operator Terminal Session</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="factory-modal">
+  <div class="modal-box">
+    <h3 class="modal-title" id="factory-modal-title">Deploy Plant Facility Node</h3>
+    <input type="hidden" id="m-factory-idx">
+    <div class="field">
+      <label>Plant Facility Short Signature Code</label>
+      <input type="text" id="m-factory-code" placeholder="e.g. FACT-A">
+    </div>
+    <div class="field">
+      <label>Legal Facility Plant Operation Title</label>
+      <input type="text" id="m-factory-name" placeholder="e.g. Delta Coast Processing Complex #4">
+    </div>
+    <div class="field">
+      <label>Regional Location Grid Address</label>
+      <input type="text" id="m-factory-loc" placeholder="e.g. Plot 19, Marine Zone, Harbour Road">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeFactoryModal()">Abort</button>
+      <button class="btn btn-navy" onclick="commitFactoryNode()">Deploy Facility Block</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="toast" id="toast-notify">System Operation Sync Successful</div>
+
+
+<script>
+// Global Database Variables
+let CURRENT_COMPANY_INDEX = 0;
+let HISTORY_ACTIVE_TAB = 'P';
+
+// Default State Fallbacks
+const DEFAULT_FACTORY_DIRECTORY = [
+  {code:"FAC-ROYAL", name:"Royal Aqua Marine Processing Unit", loc:"Industrial Bay Sector 2, Visakhapatnam"},
+  {code:"FAC-OCEAN", name:"Oceanic Deep Frost Freeze Complexes", loc:"Harbour Terminal Wharf, Kakinada"}
+];
+
+// Base Data-Structures Helper Functions
+function getCompaniesList() {
+  const data = localStorage.getItem('sfh_companies_list');
+  return data ? JSON.parse(data) : [];
+}
+
+function saveCompaniesList(list) {
+  localStorage.setItem('sfh_companies_list', JSON.stringify(list));
+}
+
+function getActiveCompany() {
+  const list = getCompaniesList();
+  if(list.length === 0) return null;
+  if(CURRENT_COMPANY_INDEX >= list.length) CURRENT_COMPANY_INDEX = 0;
+  return list[CURRENT_COMPANY_INDEX];
+}
+
+function updateActiveCompanyData(updatedCompanyObj) {
+  const list = getCompaniesList();
+  if(list.length > 0) {
+    list[CURRENT_COMPANY_INDEX] = updatedCompanyObj;
+    saveCompaniesList(list);
+  }
+}
+
+// Global Application Helper Utilities
+function toast(msg) {
+  const t = document.getElementById('toast-notify');
+  t.innerText = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function isLoggedIn() {
+  return localStorage.getItem('sfh_logged_in_phone') !== null;
+}
+
+// Base64 File Loading Converter Tool
+function previewImage(fileInput, previewId) {
+  const file = fileInput.files[0];
+  if(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = document.getElementById(previewId);
+      img.src = e.target.result;
+      img.style.display = 'block';
+    }
+    reader.readAsDataURL(file);
+  }
+}
+
+// Onboarding Multi-Config Repeated Rows Setup engines
+function addConfigRow(containerId, placeholderText, value = "") {
+  const container = document.getElementById(containerId);
+  const row = document.createElement('div');
+  row.className = 'config-table-row';
+  row.innerHTML = `
+    <input type="text" class="config-input-node" placeholder="${placeholderText}" value="${value}" style="width: 100%; border: 1.5px solid var(--border); border-radius: 9px; padding: 8px 12px; background:#faf8f3;">
+    <button class="del-btn" onclick="this.parentElement.remove()" style="padding:8px; font-weight:bold; font-size:1.1rem;">×</button>
+  `;
+  container.appendChild(row);
+}
+
+function addDriverConfigRow(containerId, name = "", phone = "") {
+  const container = document.getElementById(containerId);
+  const row = document.createElement('div');
+  row.className = 'config-table-row';
+  row.style.gridTemplateColumns = '1fr 1fr auto';
+  row.innerHTML = `
+    <input type="text" class="driver-name-node" placeholder="Driver Name" value="${name}" style="border: 1.5px solid var(--border); border-radius: 9px; padding: 8px 12px; background:#faf8f3;">
+    <input type="tel" class="driver-phone-node" placeholder="Mobile Number" value="${phone}" maxlength="10" style="border: 1.5px solid var(--border); border-radius: 9px; padding: 8px 12px; background:#faf8f3;">
+    <button class="del-btn" onclick="this.parentElement.remove()" style="padding:8px; font-weight:bold; font-size:1.1rem;">×</button>
+  `;
+  container.appendChild(row);
+}
+
+// Suggestion Autocomplete Engines
+let ACTIVE_VEHICLES = [];
+let ACTIVE_DRIVERS = [];
+
+function showVehicleSuggestions() {
+  const box = document.getElementById('veh-suggestions');
+  const val = document.getElementById('s-veh-no').value.toLowerCase();
+  box.innerHTML = '';
+  const filtered = ACTIVE_VEHICLES.filter(v => v.toLowerCase().includes(val));
+  if(filtered.length === 0 && ACTIVE_VEHICLES.length > 0) {
+    ACTIVE_VEHICLES.forEach(v => {
+      const item = document.createElement('div');
+      item.className = 'suggestion-item';
+      item.innerText = v;
+      item.onclick = function() { document.getElementById('s-veh-no').value = v; box.style.display = 'none'; };
+      box.appendChild(item);
+    });
+  } else {
+    filtered.forEach(v => {
+      const item = document.createElement('div');
+      item.className = 'suggestion-item';
+      item.innerText = v;
+      item.onclick = function() { document.getElementById('s-veh-no').value = v; box.style.display = 'none'; };
+      box.appendChild(item);
+    });
+  }
+  box.style.display = box.children.length > 0 ? 'block' : 'none';
+}
+
+function filterVehicleSuggestions() {
+  showVehicleSuggestions();
+}
+
+function showDriverSuggestions() {
+  const box = document.getElementById('driver-suggestions');
+  const val = document.getElementById('s-driver-name').value.toLowerCase();
+  box.innerHTML = '';
+  const filtered = ACTIVE_DRIVERS.filter(d => d.name.toLowerCase().includes(val));
+  const targets = filtered.length === 0 ? ACTIVE_DRIVERS : filtered;
+  targets.forEach(d => {
+    const item = document.createElement('div');
+    item.className = 'suggestion-item';
+    item.innerText = `${d.name} (${d.phone})`;
+    item.onclick = function() {
+      document.getElementById('s-driver-name').value = d.name;
+      document.getElementById('s-driver-phone').value = d.phone;
+      box.style.display = 'none';
+    };
+    box.appendChild(item);
+  });
+  box.style.display = box.children.length > 0 ? 'block' : 'none';
+}
+
+function filterDriverSuggestions() {
+  showDriverSuggestions();
+}
+
+// Close suggestion frames clicking outside
+document.addEventListener('click', function(e) {
+  if(e.target.id !== 's-veh-no') document.getElementById('veh-suggestions').style.display = 'none';
+  if(e.target.id !== 's-driver-name') document.getElementById('driver-suggestions').style.display = 'none';
+});
+
+// Numeric values string formatting assistant 
+function formatDecimalStr(val) {
+  const num = parseFloat(val);
+  if(isNaN(num)) return "0.00";
+  return num.toFixed(2);
+}
+
+// Convert numbers into standard descriptive text words
+function convertAmountToWords(amount) {
+  const sgl = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+  const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+  const scale = ["", "Thousand", "Lakh", "Crore"];
+
+  let num = Math.floor(amount);
+  if (num === 0) return "Zero Rupees Only";
+
+  function parseChunk(n) {
+    let str = "";
+    if (n >= 100) {
+      str += sgl[Math.floor(n / 100)] + " Hundred ";
+      n %= 100;
+    }
+    if (n >= 20) {
+      str += tens[Math.floor(n / 10)] + " ";
+      n %= 10;
+    }
+    if (n > 0) {
+      str += sgl[n] + " ";
+    }
+    return str.trim();
+  }
+
+  let out = "";
+  let chunkIdx = 0;
+
+  // Process lowest level rupees
+  let hundredRem = num % 1000;
+  if(hundredRem > 0) {
+    out = parseChunk(hundredRem) + " " + out;
+  }
+  num = Math.floor(num / 1000);
+  chunkIdx = 1;
+
+  while (num > 0) {
+    let currentChunk = num % 100;
+    if (currentChunk > 0) {
+      out = parseChunk(currentChunk) + " " + scale[chunkIdx] + " " + out;
+    }
+    num = Math.floor(num / 100);
+    chunkIdx++;
+  }
+
+  return out.trim() + " Rupees Only";
+}
+
+
+// Auth Verification Matrix Processes
+function requestOTP() {
+  const p = document.getElementById('login-phone').value;
+  if(p.length !== 10) { alert("Matrix identity key validation error. Must span 10 integers."); return; }
+  document.getElementById('login-step-phone').style.display = 'none';
+  document.getElementById('login-step-otp').style.display = '';
+  toast("Token authorization block uploaded.");
+}
+
+function validateOTP() {
+  const token = document.getElementById('login-otp').value;
+  if(!token) { alert("Input transaction authorization sequence token."); return; }
+  localStorage.setItem('sfh_logged_in_phone', document.getElementById('login-phone').value);
+  toast("Terminal Authorization Approved.");
+  afterLogin();
+}
+
+function resetLogin() {
+  document.getElementById('login-step-otp').style.display = 'none';
+  document.getElementById('login-step-phone').style.display = '';
+  document.getElementById('login-otp').value = '';
+}
+
+function triggerNewCompanyOnboarding() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('onboarding-screen').classList.add('active');
+  
+  // Wipe onboarding forms clean
+  document.getElementById('ob-co-name').value = '';
+  document.getElementById('ob-co-short').value = '';
+  document.getElementById('ob-co-city').value = '';
+  document.getElementById('ob-co-addr').value = '';
+  document.getElementById('ob-co-pan').value = '';
+  document.getElementById('ob-co-gst').value = '';
+  document.getElementById('ob-bank-name').value = '';
+  document.getElementById('ob-bank-institution').value = '';
+  document.getElementById('ob-bank-acc').value = '';
+  document.getElementById('ob-bank-ifsc').value = '';
+  document.getElementById('ob-logo-preview').src = '';
+  document.getElementById('ob-logo-preview').style.display = 'none';
+  document.getElementById('ob-sig-preview').src = '';
+  document.getElementById('ob-sig-preview').style.display = 'none';
+  document.getElementById('ob-vehicles-container').innerHTML = '';
+  document.getElementById('ob-drivers-container').innerHTML = '';
+}
+
+function commitOnboarding() {
+  const title = document.getElementById('ob-co-name').value.trim();
+  const scode = document.getElementById('ob-co-short').value.trim().toUpperCase();
+  const city = document.getElementById('ob-co-city').value.trim();
+  const address = document.getElementById('ob-co-addr').value.trim();
+  
+  if(!title || !scode || !city) {
+    alert("Crucial configuration indicators missing. Assign Name, Short Code, and City nodes.");
+    return;
+  }
+
+  // Parse repeatable sub tables maps
+  const vehicles = [];
+  document.querySelectorAll('#ob-vehicles-container .config-input-node').forEach(input => {
+    if(input.value.trim()) vehicles.push(input.value.trim().toUpperCase());
+  });
+
+  const drivers = [];
+  const driverRows = document.querySelectorAll('#ob-drivers-container .config-table-row');
+  driverRows.forEach(row => {
+    const dName = row.querySelector('.driver-name-node').value.trim();
+    const dPhone = row.querySelector('.driver-phone-node').value.trim();
+    if(dName) drivers.push({ name: dName, phone: dPhone });
+  });
+
+  const targetProfile = {
+    name: title,
+    shortCode: scode,
+    city: city,
+    address: address,
+    pan: document.getElementById('ob-co-pan').value.trim(),
+    gstin: document.getElementById('ob-co-gst').value.trim(),
+    bankName: document.getElementById('ob-bank-name').value.trim(),
+    bankInstitution: document.getElementById('ob-bank-institution').value.trim(),
+    bankAccount: document.getElementById('ob-bank-acc').value.trim(),
+    bankIfsc: document.getElementById('ob-bank-ifsc').value.trim(),
+    logoImg: document.getElementById('ob-logo-preview').src || "",
+    sigImg: document.getElementById('ob-sig-preview').src || "",
+    vehicles: vehicles,
+    drivers: drivers,
+    factories: DEFAULT_FACTORY_DIRECTORY,
+    history: []
+  };
+
+  const list = getCompaniesList();
+  list.push(targetProfile);
+  saveCompaniesList(list);
+  CURRENT_COMPANY_INDEX = list.length - 1;
+
+  toast("Corporate Identity Blueprint Synthesized.");
+  document.getElementById('onboarding-screen').classList.remove('active');
+  document.getElementById('home').classList.add('active');
+  updateHomeDisplay();
+}
+
+function updateHomeDisplay() {
+  const activeCo = getActiveCompany();
+  if(!activeCo) {
+    triggerNewCompanyOnboarding();
+    return;
+  }
+  document.getElementById('home-display-co').innerText = activeCo.name;
+  document.getElementById('home-display-city').innerText = activeCo.city + " HUB CENTER";
+  document.getElementById('home-display-short').innerText = "Active Node Code: " + activeCo.shortCode;
+  document.getElementById('home-live-date').innerText = new Date().toDateString().toUpperCase() + " | SECURE ONLINE CONTEXT";
+
+  // Build autocompletes maps
+  ACTIVE_VEHICLES = activeCo.vehicles || [];
+  ACTIVE_DRIVERS = activeCo.drivers || [];
+}
+
+function afterLogin() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const list = getCompaniesList();
+  if(list.length === 0) {
+    document.getElementById('onboarding-screen').classList.add('active');
+  } else {
+    document.getElementById('home').classList.add('active');
+    updateHomeDisplay();
+  }
+}
+
+function logout() {
+  localStorage.removeItem('sfh_logged_in_phone');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('login-screen').classList.add('active');
+  resetLogin();
+  document.getElementById('login-phone').value = '';
+  toast("Operational matrix connection terminated.");
+}
+
+function navigateHome() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('home').classList.add('active');
+  updateHomeDisplay();
+}
+
+
+// --- PROCUREMENT CORE ENGINE ---
+function openPurchase() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('purchase-screen').classList.add('active');
+  document.getElementById('p-date').valueAsDate = new Date();
+  document.getElementById('p-lot-no').value = "LOT-" + Math.floor(1000 + Math.random() * 9000);
+  
+  // Wipe parameters input elements
+  document.getElementById('p-supplier-name').value = '';
+  document.getElementById('p-supplier-loc').value = '';
+  document.getElementById('p-shrimp-type').value = 'Vannamei';
+  document.getElementById('p-ded-ice').value = 0;
+  document.getElementById('p-ded-hl').value = 0;
+  document.getElementById('p-ded-other').value = 0;
+  document.getElementById('p-scrap-kg').value = 0;
+  document.getElementById('p-scrap-rate').value = 0;
+  
+  // Feed active factories selection configurations
+  const fSelect = document.getElementById('p-factory-select');
+  fSelect.innerHTML = '<option value="">Select Processing Target</option>';
+  const co = getActiveCompany();
+  if(co && co.factories) {
+    co.factories.forEach(f => {
+      fSelect.innerHTML += `<option value="${f.code}">${f.name} (${f.code})</option>`;
+    });
+  }
+  
+  document.getElementById('p-lot-rows-container').innerHTML = '';
+  addPurchaseRow();
+  calculatePurchaseTotals();
+}
+
+function addPurchaseRow() {
+  const container = document.getElementById('p-lot-rows-container');
+  const index = container.children.length + 1;
+  const row = document.createElement('div');
+  row.className = 'lot-row-p';
+  row.innerHTML = `
+    <div class="row-num">${index}</div>
+    <div><input type="number" class="p-count" placeholder="0" oninput="calculatePurchaseTotals()"></div>
+    <div><input type="number" class="p-weight" placeholder="0.00" oninput="calculatePurchaseTotals()"></div>
+    <div><input type="number" class="p-rate" placeholder="0.00" oninput="calculatePurchaseTotals()"></div>
+    <div class="row-amt p-amt">0.00</div>
+    <div><button class="del-btn" onclick="this.parentElement.parentElement.remove(); reindexPurchaseTable(); calculatePurchaseTotals();">×</button></div>
+  `;
+  container.appendChild(row);
+}
+
+function reindexPurchaseTable() {
+  document.querySelectorAll('#p-lot-rows-container .lot-row-p').forEach((row, i) => {
+    row.querySelector('.row-num').innerText = i + 1;
+  });
+}
+
+function calculatePurchaseTotals() {
+  let totalWeight = 0;
+  let totalBasicAmount = 0;
+
+  document.querySelectorAll('#p-lot-rows-container .lot-row-p').forEach(row => {
+    const w = parseFloat(row.querySelector('.p-weight').value) || 0;
+    const r = parseFloat(row.querySelector('.p-rate').value) || 0;
+    const amt = w * r;
+    row.querySelector('.p-amt').innerText = formatDecimalStr(amt);
+    totalWeight += w;
+    totalBasicAmount += amt;
+  });
+
+  document.getElementById('p-tot-weight').innerText = formatDecimalStr(totalWeight);
+  document.getElementById('p-tot-basic').innerText = formatDecimalStr(totalBasicAmount);
+
+  const ice = parseFloat(document.getElementById('p-ded-ice').value) || 0;
+  const hl = parseFloat(document.getElementById('p-ded-hl').value) || 0;
+  const other = parseFloat(document.getElementById('p-ded-other').value) || 0;
+  const totalDeductedWeight = ice + hl + other;
+
+  const scrapKg = parseFloat(document.getElementById('p-scrap-kg').value) || 0;
+  const scrapRate = parseFloat(document.getElementById('p-scrap-rate').value) || 0;
+  const scrapCredit = scrapKg * scrapRate;
+
+  // Calculate global aggregate rates mapping averages
+  const avgRate = totalWeight > 0 ? (totalBasicAmount / totalWeight) : 0;
+  const grossValue = totalBasicAmount;
+  const deductionValue = totalDeductedWeight * avgRate;
+  const netPayable = grossValue - deductionValue + scrapCredit;
+
+  document.getElementById('p-val-gross').innerText = formatDecimalStr(grossValue);
+  document.getElementById('p-val-dedweight').innerText = formatDecimalStr(totalDeductedWeight);
+  document.getElementById('p-val-scrap').innerText = formatDecimalStr(scrapCredit);
+  document.getElementById('p-val-net').innerText = formatDecimalStr(netPayable);
+}
+
+function savePurchase() {
+  const co = getActiveCompany();
+  if(!co) return;
+
+  const rows = [];
+  document.querySelectorAll('#p-lot-rows-container .lot-row-p').forEach(r => {
+    const cnt = parseInt(r.querySelector('.p-count').value) || 0;
+    const wt = parseFloat(r.querySelector('.p-weight').value) || 0;
+    const rt = parseFloat(r.querySelector('.p-rate').value) || 0;
+    if(wt > 0) rows.push({ count: cnt, weight: wt, rate: rt });
+  });
+
+  if(rows.length === 0) { alert("Matrix cannot commit null values. Fill tracking inventory."); return; }
+
+  const record = {
+    id: "TXP-" + Date.now().toString().slice(-6),
+    type: "PURCHASE",
+    date: document.getElementById('p-date').value,
+    lotNo: document.getElementById('p-lot-no').value,
+    factoryCode: document.getElementById('p-factory-select').value,
+    supplierName: document.getElementById('p-supplier-name').value,
+    supplierLoc: document.getElementById('p-supplier-loc').value,
+    shrimpType: document.getElementById('p-shrimp-type').value,
+    rows: rows,
+    deductions: {
+      ice: parseFloat(document.getElementById('p-ded-ice').value) || 0,
+      hl: parseFloat(document.getElementById('p-ded-hl').value) || 0,
+      other: parseFloat(document.getElementById('p-ded-other').value) || 0
+    },
+    scrap: {
+      weight: parseFloat(document.getElementById('p-scrap-kg').value) || 0,
+      rate: parseFloat(document.getElementById('p-scrap-rate').value) || 0
+    },
+    netPayable: parseFloat(document.getElementById('p-val-net').innerText)
+  };
+
+  if(!co.history) co.history = [];
+  co.history.push(record);
+  updateActiveCompanyData(co);
+  toast("Procurement Ledger Committed Successfully.");
+  navigateHome();
+}
+
+
+// --- SALES DISTRIBUTION ENGINE ---
+function openSale() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('sale-screen').classList.add('active');
+  document.getElementById('s-date').valueAsDate = new Date();
+  
+  // Prefix Invoice numbers with the dynamic selected Company Short Code
+  const co = getActiveCompany();
+  const scode = co ? co.shortCode : "INV";
+  document.getElementById('s-invoice-no').value = scode + "-" + Math.floor(10000 + Math.random() * 90000);
+
+  document.getElementById('s-buyer-name').value = '';
+  document.getElementById('s-buyer-addr').value = '';
+  document.getElementById('s-veh-no').value = '';
+  document.getElementById('s-driver-name').value = '';
+  document.getElementById('s-driver-phone').value = '';
+  document.getElementById('s-temp').value = '-18.0°C';
+  document.getElementById('s-dispatch-place').value = co ? co.city : '';
+  document.getElementById('s-insurance').value = 0;
+
+  document.getElementById('s-lot-rows-container').innerHTML = '';
+  addSaleRow();
+  calculateSaleTotals();
+}
+
+function addSaleRow() {
+  const container = document.getElementById('s-lot-rows-container');
+  const index = container.children.length + 1;
+  const row = document.createElement('div');
+  row.className = 'lot-row-s';
+  row.innerHTML = `
+    <div class="row-num">${index}</div>
+    <div><input type="text" class="s-count" placeholder="Variety Log Index" oninput="calculateSaleTotals()"></div>
+    <div><input type="number" class="s-weight" placeholder="0.00" oninput="calculateSaleTotals()"></div>
+    <div><input type="number" class="s-rate" placeholder="0.00" oninput="calculateSaleTotals()"></div>
+    <div class="row-amt s-amt">0.00</div>
+    <div><button class="del-btn" onclick="this.parentElement.parentElement.remove(); reindexSaleTable(); calculateSaleTotals();">×</button></div>
+  `;
+  container.appendChild(row);
+}
+
+function reindexSaleTable() {
+  document.querySelectorAll('#s-lot-rows-container .lot-row-s').forEach((row, i) => {
+    row.querySelector('.row-num').innerText = i + 1;
+  });
+}
+
+function calculateSaleTotals() {
+  let totalWeight = 0;
+  let totalBasicAmount = 0;
+
+  document.querySelectorAll('#s-lot-rows-container .lot-row-s').forEach(row => {
+    const w = parseFloat(row.querySelector('.s-weight').value) || 0;
+    const r = parseFloat(row.querySelector('.s-rate').value) || 0;
+    const amt = w * r;
+    row.querySelector('.s-amt').innerText = formatDecimalStr(amt);
+    totalWeight += w;
+    totalBasicAmount += amt;
+  });
+
+  document.getElementById('s-tot-weight').innerText = formatDecimalStr(totalWeight);
+  document.getElementById('s-tot-basic').innerText = formatDecimalStr(totalBasicAmount);
+
+  const insurance = parseFloat(document.getElementById('s-insurance').value) || 0;
+  const totalNetVal = totalBasicAmount + insurance;
+
+  document.getElementById('s-val-gross').innerText = formatDecimalStr(totalBasicAmount);
+  document.getElementById('s-val-net').innerText = formatDecimalStr(totalNetVal);
+}
+
+let COMPILING_SALE_RECORD = null;
+
+function processSaleInvoicePreview() {
+  const co = getActiveCompany();
+  if(!co) return;
+
+  const rows = [];
+  document.querySelectorAll('#s-lot-rows-container .lot-row-s').forEach(r => {
+    const cnt = r.querySelector('.s-count').value || "Standard Cargo";
+    const wt = parseFloat(r.querySelector('.s-weight').value) || 0;
+    const rt = parseFloat(r.querySelector('.s-rate').value) || 0;
+    if(wt > 0) rows.push({ count: cnt, weight: wt, rate: rt });
+  });
+
+  if(rows.length === 0) { alert("Matrix grid cannot process null inventory items."); return; }
+
+  COMPILING_SALE_RECORD = {
+    id: "TXS-" + Date.now().toString().slice(-6),
+    type: "SALE",
+    date: document.getElementById('s-date').value,
+    invoiceNo: document.getElementById('s-invoice-no').value,
+    buyerName: document.getElementById('s-buyer-name').value.trim() || "Cash Customer",
+    buyerAddr: document.getElementById('s-buyer-addr').value.trim() || "Operational Delivery Area Network",
+    vehNo: document.getElementById('s-veh-no').value.toUpperCase() || "NA",
+    driverName: document.getElementById('s-driver-name').value || "NA",
+    driverPhone: document.getElementById('s-driver-phone').value || "NA",
+    temp: document.getElementById('s-temp').value || "NA",
+    dispatchPlace: document.getElementById('s-dispatch-place').value || "NA",
+    rows: rows,
+    insurance: parseFloat(document.getElementById('s-insurance').value) || 0,
+    netTotal: parseFloat(document.getElementById('s-val-net').innerText)
+  };
+
+  // Render Printable Document Preview
+  document.getElementById('pr-user-co-name').innerText = co.name;
+  document.getElementById('pr-user-co-city').innerText = co.city;
+  document.getElementById('pr-user-co-addr').innerText = co.address || "Main Processing Grid Sector 1";
+  document.getElementById('pr-user-co-tax').innerText = `PAN: ${co.pan || 'NOT SUPPLIED'} | GSTIN: ${co.gstin || 'NOT DEPLOYED'}`;
+  
+  // Bank elements account name update mapping
+  document.getElementById('pr-bank-title-name').innerText = co.bankName || co.name;
+  document.getElementById('pr-bank-name').innerText = co.bankInstitution || "Central Clearing Node";
+  document.getElementById('pr-bank-acc').innerText = co.bankAccount || "NA";
+  document.getElementById('pr-bank-ifsc').innerText = co.bankIfsc || "NA";
+
+  // Dynamic image insertion (Pure Black & White Filter Overridden)
+  const logoWrap = document.getElementById('print-logo-container');
+  if(co.logoImg) {
+    logoWrap.innerHTML = `<img src="${co.logoImg}" alt="Logo">`;
+  } else {
+    logoWrap.innerHTML = `
+      <svg width="48" height="48" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="32" cy="32" r="30" fill="none" stroke="#000" stroke-width="2"/>
+        <text x="32" y="38" font-size="14" font-weight="bold" fill="#000" text-anchor="middle">${co.shortCode}</text>
+      </svg>
+    `;
+  }
+
+  const sigWrap = document.getElementById('print-sig-container');
+  if(co.sigImg) {
+    sigWrap.innerHTML = `<img src="${co.sigImg}" style="max-height:55px; max-width:100%; object-fit:contain; filter:grayscale(100%);">`;
+  } else {
+    sigWrap.innerText = "Authorized Signature Block";
+  }
+
+  // Populate dynamic textual attributes
+  document.getElementById('pr-inv-no').innerText = COMPILING_SALE_RECORD.invoiceNo;
+  document.getElementById('pr-inv-date').innerText = COMPILING_SALE_RECORD.date;
+  document.getElementById('pr-buyer-name').innerText = COMPILING_SALE_RECORD.buyerName;
+  document.getElementById('pr-buyer-addr').innerText = COMPILING_SALE_RECORD.buyerAddr;
+  
+  document.getElementById('pr-veh-no').innerText = COMPILING_SALE_RECORD.vehNo;
+  document.getElementById('pr-driver-name').innerText = COMPILING_SALE_RECORD.driverName;
+  document.getElementById('pr-driver-phone').innerText = COMPILING_SALE_RECORD.driverPhone;
+  document.getElementById('pr-temp').innerText = COMPILING_SALE_RECORD.temp;
+  document.getElementById('pr-dispatch-place').innerText = COMPILING_SALE_RECORD.dispatchPlace;
+
+  // Process item rows injections with required decimal zeroes formatting
+  const tableBody = document.getElementById('pr-invoice-table-body');
+  tableBody.innerHTML = '';
+  let grossCargoVal = 0;
+  let grossWeightVal = 0;
+
+  COMPILING_SALE_RECORD.rows.forEach((row, i) => {
+    const rowAmt = row.weight * row.rate;
+    grossCargoVal += rowAmt;
+    grossWeightVal += row.weight;
+
+    tableBody.innerHTML += `
+      <tr>
+        <td style="text-align:center;">${i + 1}</td>
+        <td>${row.count}</td>
+        <td class="r">${formatDecimalStr(row.weight)}</td>
+        <td class="r">${formatDecimalStr(row.rate)}</td>
+        <td class="r">${formatDecimalStr(row-Amt)}</td>
+      </tr>
+    `;
+  });
+
+  document.getElementById('pr-tot-weight').innerText = formatDecimalStr(grossWeightVal);
+  document.getElementById('pr-tot-basic').innerText = formatDecimalStr(grossCargoVal);
+  document.getElementById('pr-val-gross').innerText = formatDecimalStr(grossCargoVal);
+  document.getElementById('pr-val-insurance').innerText = formatDecimalStr(COMPILING_SALE_RECORD.insurance);
+  
+  const netInvoicedVal = grossCargoVal + COMPILING_SALE_RECORD.insurance;
+  document.getElementById('pr-val-net').innerText = formatDecimalStr(netInvoicedVal);
+
+  // Set the dynamic total in words under the rows table matrix
+  document.getElementById('pr-amount-words').innerText = convertAmountToWords(netInvoicedVal);
+
+  // Transition screen modes
+  document.getElementById('sale-screen').classList.remove('active');
+  document.getElementById('invoice-preview-screen').classList.add('active');
+}
+
+function closeInvoicePreview() {
+  document.getElementById('invoice-preview-screen').classList.remove('active');
+  document.getElementById('sale-screen').classList.add('active');
+}
+
+function printInvoiceSnapshot() {
+  const co = getActiveCompany();
+  if(!co || !COMPILING_SALE_RECORD) return;
+
+  // Commit history records logs
+  if(!co.history) co.history = [];
+  co.history.push(COMPILING_SALE_RECORD);
+  updateActiveCompanyData(co);
+
+  // Execute web standard canvas rendering logic maps
+  const targetElement = document.getElementById('invoice-sheet');
+  html2canvas(targetElement, { scale: 2, useCORS: true }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = `Invoice_${COMPILING_SALE_RECORD.invoiceNo}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    toast("PNG Distribution Manifest Dispatched to System Link.");
+    
+    COMPILING_SALE_RECORD = null;
+    navigateHome();
+  });
+}
+
+
+// --- PROCESSING PLANT FACILITIES MANAGERS ---
+function openFactories() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('factories-screen').classList.add('active');
+  renderFactoriesList();
+}
+
+function renderFactoriesList() {
+  const co = getActiveCompany();
+  const container = document.getElementById('factory-list-element');
+  container.innerHTML = '';
+
+  if(!co || !co.factories || co.factories.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">🏭</div>
+        <p>No operational plants linked in current company context core matrix pipeline logs.</p>
+      </div>
+    `;
+    return;
+  }
+
+  co.factories.forEach((f, idx) => {
+    container.innerHTML += `
+      <div class="factory-card">
+        <div class="fc-code">${f.code}</div>
+        <h3>${f.name}</h3>
+        <p>📍 Grid Position: ${f.loc}</p>
+        <div class="factory-card-actions">
+          <button class="fc-btn fc-edit" onclick="triggerEditFactory(${idx})">Modify Index</button>
+          <button class="fc-btn fc-del" onclick="triggerDeleteFactory(${idx})">Purge Node</button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function showAddFactoryModal() {
+  document.getElementById('m-factory-idx').value = "";
+  document.getElementById('m-factory-code').value = "";
+  document.getElementById('m-factory-name').value = "";
+  document.getElementById('m-factory-loc').value = "";
+  document.getElementById('factory-modal-title').innerText = "Deploy Facility Complex Matrix";
+  document.getElementById('factory-modal').classList.add('open');
+}
+
+function closeFactoryModal() {
+  document.getElementById('factory-modal').classList.remove('open');
+}
+
+function commitFactoryNode() {
+  const code = document.getElementById('m-factory-code').value.trim().toUpperCase();
+  const name = document.getElementById('m-factory-name').value.trim();
+  const loc = document.getElementById('m-factory-loc').value.trim();
+  const idxVal = document.getElementById('m-factory-idx').value;
+
+  if(!code || !name) { alert("Code and Label matrix indicators are mandatory."); return; }
+
+  const co = getActiveCompany();
+  if(!co) return;
+  if(!co.factories) co.factories = [];
+
+  const nodeData = { code: code, name: name, loc: loc || "Standard Sea Hub Grid Region" };
+
+  if(idxVal === "") {
+    co.factories.push(nodeData);
+    toast("New Complex Processing Node Deployed.");
+  } else {
+    co.factories[parseInt(idxVal)] = nodeData;
+    toast("Facility Registry Coordinates Modified.");
+  }
+
+  updateActiveCompanyData(co);
+  closeFactoryModal();
+  renderFactoriesList();
+}
+
+function triggerEditFactory(idx) {
+  const co = getActiveCompany();
+  if(!co || !co.factories[idx]) return;
+  const target = co.factories[idx];
+
+  document.getElementById('m-factory-idx').value = idx;
+  document.getElementById('m-factory-code').value = target.code;
+  document.getElementById('m-factory-name').value = target.name;
+  document.getElementById('m-factory-loc').value = target.loc;
+  document.getElementById('factory-modal-title').innerText = "Modify Complex Node Parameters";
+  document.getElementById('factory-modal').classList.add('open');
+}
+
+function triggerDeleteFactory(idx) {
+  if(!confirm("Execute permanent structural deletion code for this operational factory block matrix?")) return;
+  const co = getActiveCompany();
+  if(!co) return;
+  co.factories.splice(idx, 1);
+  updateActiveCompanyData(co);
+  toast("Plant Facility Node Cleared.");
+  renderFactoriesList();
+}
+
+
+// --- ARCHIVE HISTORY LOG MATRIX ENGINE ---
+function openHistory() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('history-screen').classList.add('active');
+  renderHistoryLedgerItems();
+}
+
+function switchHistoryTab(tabType) {
+  HISTORY_ACTIVE_TAB = tabType;
+  document.getElementById('tab-p').classList.toggle('active', tabType === 'P');
+  document.getElementById('tab-s').classList.toggle('active', tabType === 'S');
+  renderHistoryLedgerItems();
+}
+
+function renderHistoryLedgerItems() {
+  const co = getActiveCompany();
+  const container = document.getElementById('history-items-container');
+  container.innerHTML = '';
+
+  if(!co || !co.history || co.history.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">🗂️</div><p>No operational log manifests detected in archive.</p></div>';
+    return;
+  }
+
+  const filtered = co.history.filter(item => {
+    return HISTORY_ACTIVE_TAB === 'P' ? item.type === 'PURCHASE' : item.type === 'SALE';
+  });
+
+  if(filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>No transactions matching this tracking filter.</p></div>';
+    return;
+  }
+
+  filtered.reverse().forEach(item => {
+    if(item.type === 'PURCHASE') {
+      container.innerHTML += `
+        <div class="history-item">
+          <div class="history-badge purchase">⚓</div>
+          <div>
+            <h4>Lot Ref: ${item.lotNo || 'NA'}</h4>
+            <p>Supplier: ${item.supplierName || 'Global Pool'} | Date: ${item.date}</p>
+            <p style="font-weight:bold; color:var(--navy);">Settlement: ₹ ${formatDecimalStr(item.netPayable)}</p>
+          </div>
+          <button class="history-del" onclick="purgeHistoryNode('${item.id}', event)">×</button>
+        </div>
+      `;
+    } else {
+      container.innerHTML += `
+        <div class="history-item">
+          <div class="history-badge sale">🔱</div>
+          <div>
+            <h4>Invoice Serial: ${item.invoiceNo}</h4>
+            <p>Consignee: ${item.buyerName} | Date: ${item.date}</p>
+            <p style="font-weight:bold; color:var(--gold);">Receivable: ₹ ${formatDecimalStr(item.netTotal)}</p>
+          </div>
+          <button class="history-del" onclick="purgeHistoryNode('${item.id}', event)">×</button>
+        </div>
+      `;
+    }
+  });
+}
+
+function purgeHistoryNode(id, event) {
+  event.stopPropagation();
+  if(!confirm("Execute structural removal algorithm on this specific ledger log row?")) return;
+  const co = getActiveCompany();
+  if(!co || !co.history) return;
+  co.history = co.history.filter(item => item.id !== id);
+  updateActiveCompanyData(co);
+  toast("Archive Manifest Unit Purged.");
+  renderHistoryLedgerItems();
+}
+
+
+// --- MULTI-COMPANY ADMINISTRATION PIPELINES PANEL ---
+function openSettings() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('settings-screen').classList.add('active');
+  renderSettingsCompaniesList();
+}
+
+function renderSettingsCompaniesList() {
+  const container = document.getElementById('settings-companies-list');
+  container.innerHTML = '';
+  const list = getCompaniesList();
+
+  if(list.length === 0) {
+    container.innerHTML = '<p style="font-size:.8rem; color:var(--muted)">No operational nodes established.</p>';
+    return;
+  }
+
+  list.forEach((co, idx) => {
+    const isSelected = (idx === CURRENT_COMPANY_INDEX);
+    container.innerHTML += `
+      <div class="profile-item-card ${isSelected ? 'selected' : ''}" onclick="selectActiveCompanyPipeline(${idx})">
+        <div>
+          <strong style="font-size:.9rem; color:var(--navy);">${co.name} [${co.shortCode}]</strong>
+          <div style="font-size:.7rem; color:var(--muted);">Grid Location Point: ${co.city}</div>
+        </div>
+        <div>
+          ${isSelected ? '<span style="font-size:.7rem; font-weight:bold; background:var(--navy); color:#fff; padding:2px 6px; border-radius:4px;">ACTIVE DEFAULT</span>' : ''}
+          <button class="del-btn" onclick="purgeCompanyPipeline(${idx}, event)" style="margin-left:10px; font-weight:bold;">×</button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function selectActiveCompanyPipeline(idx) {
+  CURRENT_COMPANY_INDEX = idx;
+  toast("Active Company Matrix Pipeline Shifted.");
+  renderSettingsCompaniesList();
+  updateHomeDisplay();
+}
+
+function purgeCompanyPipeline(idx, event) {
+  event.stopPropagation();
+  const list = getCompaniesList();
+  if(!confirm(`Initiate complete wipe of corporate directory pipeline maps for: ${list[idx].name}? This completely clears all internal log metrics and history.`)) return;
+  
+  list.splice(idx, 1);
+  saveCompaniesList(list);
+  
+  if(CURRENT_COMPANY_INDEX >= list.length) {
+    CURRENT_COMPANY_INDEX = 0;
+  }
+  toast("Entity Pipeline Block Cleared.");
+  renderSettingsCompaniesList();
+  updateHomeDisplay();
+}
+
+
+// --- SYSTEM ENGINE INITIALIZER ENTRY POINT ---
+(function initSystemTerminal() {
+  if(!isLoggedIn()) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('login-screen').classList.add('active');
+    return;
+  }
+  afterLogin();
+})();
+</script>
+</body>
+</html>
