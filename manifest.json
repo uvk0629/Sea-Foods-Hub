@@ -1,8 +1,8 @@
 {
   "name": "Sea Foods Hub",
-  "short_name": "SFH",
+  "short_name": "Sea Foods Hub",
   "description": "Sea Foods Hub - Seafood business management app for purchases, sales and invoices",
-  "start_url": "/Sea-Foods-Hub/index.html",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#1a3a6b",
   "theme_color": "#1a3a6b",
