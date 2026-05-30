@@ -233,5 +233,12 @@
     }
     // (add the rest of your functions for onboarding, company switch, vehicle/driver autofill, formatting, etc)
   </script>
+  <script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js');
+  });
+}
+</script>
 </body>
 </html>
